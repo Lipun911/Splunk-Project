@@ -1,0 +1,38 @@
+# Sample Auth Logs for SSH Brute Force Simulation
+# These are realistic /var/log/auth.log entries for testing Splunk queries
+# Format: Timestamp Host Service[PID]: Event details
+
+Jan 15 09:15:32 db-prod sshd[12345]: Failed password for admin from 203.0.113.45 port 54321 ssh2
+Jan 15 09:15:45 db-prod sshd[12346]: Failed password for admin from 203.0.113.45 port 54322 ssh2
+Jan 15 09:15:58 db-prod sshd[12347]: Invalid user test from 203.0.113.45 port 54323 ssh2
+Jan 15 09:16:11 db-prod sshd[12348]: Failed password for root from 203.0.113.45 port 54324 ssh2
+Jan 15 09:16:24 db-prod sshd[12349]: Failed password for admin from 203.0.113.45 port 54325 ssh2
+Jan 15 09:16:37 db-prod sshd[12350]: Failed password for postgres from 203.0.113.45 port 54326 ssh2
+Jan 15 09:16:50 db-prod sshd[12351]: Failed password for admin from 203.0.113.45 port 54327 ssh2
+Jan 15 09:17:03 db-prod sshd[12352]: Invalid user oracle from 203.0.113.45 port 54328 ssh2
+Jan 15 09:17:16 db-prod sshd[12353]: Failed password for root from 203.0.113.45 port 54329 ssh2
+Jan 15 09:17:29 db-prod sshd[12354]: Failed password for admin from 203.0.113.45 port 54330 ssh2
+Jan 15 09:17:42 db-prod sshd[12355]: Failed password for mysql from 203.0.113.45 port 54331 ssh2
+Jan 15 09:17:55 db-prod sshd[12356]: Failed password for postgres from 203.0.113.45 port 54332 ssh2
+Jan 15 09:18:08 db-prod sshd[12357]: Failed password for admin from 203.0.113.45 port 54333 ssh2
+Jan 15 09:18:21 db-prod sshd[12358]: Invalid user sync from 203.0.113.45 port 54334 ssh2
+Jan 15 09:18:34 db-prod sshd[12359]: Failed password for root from 203.0.113.45 port 54335 ssh2
+
+# Legitimate successful login (different IP - US based)
+Jan 15 09:20:15 db-prod sshd[12400]: Accepted password for admin from 192.168.1.100 port 55001 ssh2
+Jan 15 09:20:28 db-prod sshd[12401]: Accepted publickey for admin from 192.168.1.100 port 55002 ssh2
+
+# More brute force attempts continue (showing volume)
+Jan 15 09:20:47 db-prod sshd[12410]: Failed password for admin from 203.0.113.45 port 54336 ssh2
+Jan 15 09:21:00 db-prod sshd[12411]: Failed password for root from 203.0.113.45 port 54337 ssh2
+Jan 15 09:21:13 db-prod sshd[12412]: Failed password for postgres from 203.0.113.45 port 54338 ssh2
+Jan 15 09:21:26 db-prod sshd[12413]: Invalid user test from 203.0.113.45 port 54339 ssh2
+Jan 15 09:21:39 db-prod sshd[12414]: Failed password for admin from 203.0.113.45 port 54340 ssh2
+
+# Normal activity from internal network
+Jan 15 09:22:15 db-prod sudo: admin : TTY=pts/0 ; PWD=/home/admin ; USER=root ; COMMAND=/bin/bash
+Jan 15 09:22:28 db-prod sudo: admin : command not allowed
+Jan 15 09:23:00 db-prod sudo: root : TTY=unknown ; PWD=/ ; USER=root ; COMMAND=/usr/bin/whoami
+
+# Attack appears to stop after IP blocking
+Jan 15 09:26:00 db-prod sshd[12500]: Accepted password for admin from 192.168.1.100 port 55003 ssh2

@@ -1,0 +1,49 @@
+{
+  "version": "1.3.27",
+  "globalSearch.timeRange.earliest": "-24h@h",
+  "globalSearch.timeRange.latest": "now",
+  "panels": [
+    {
+      "name": "Failed Login Attempts Over Time",
+      "title": "Failed Login Attempts - 24H Trend",
+      "viz": "timechart",
+      "search": "index=* sourcetype=\"/var/log/auth.log\" \"Failed password\" | timechart count as failed_logins",
+      "size": "medium"
+    },
+    {
+      "name": "Top Attack Sources by Country",
+      "title": "Geographic Distribution of Attacks",
+      "viz": "geom",
+      "search": "index=* sourcetype=\"/var/log/auth.log\" \"Failed password\" | iplocation src_ip | geostats count",
+      "size": "medium"
+    },
+    {
+      "name": "SSH Brute Force Attempts",
+      "title": "Top Attack Sources (SSH)",
+      "viz": "table",
+      "search": "index=* sourcetype=\"/var/log/auth.log\" \"Failed password\" | stats count as attempts by src_ip | sort - attempts | head 10",
+      "size": "small"
+    },
+    {
+      "name": "Active Alerts",
+      "title": "Triggered Alerts (Last 24H)",
+      "viz": "single",
+      "search": "index=main source=alerts | stats count",
+      "size": "small"
+    },
+    {
+      "name": "Failed vs Successful Logins",
+      "title": "Authentication Success Rate",
+      "viz": "pie",
+      "search": "index=* sourcetype=\"/var/log/auth.log\" (\"Failed password\" OR \"Accepted password\") | stats count by status",
+      "size": "medium"
+    },
+    {
+      "name": "User Authentication Anomalies",
+      "title": "Users with Abnormal Activity",
+      "viz": "table",
+      "search": "index=* sourcetype=\"/var/log/auth.log\" | stats count as login_attempts by user | where login_attempts > 50",
+      "size": "medium"
+    }
+  ]
+}

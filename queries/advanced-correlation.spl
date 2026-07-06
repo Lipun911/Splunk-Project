@@ -1,0 +1,47 @@
+# Advanced Correlation Queries for Threat Detection
+
+## 1. Detect Lateral Movement Pattern
+index=* sourcetype="/var/log/auth.log"
+| stats count as login_attempts by src_ip, dest_ip, user
+| where login_attempts > 3
+| eval lateral_movement="potential" if login_attempts > 5
+| table src_ip, dest_ip, user, login_attempts, lateral_movement
+
+## 2. Compromise Indicators - User Behavior Anomaly
+index=* sourcetype="/var/log/auth.log" OR sourcetype="/var/log/syslog"
+| stats count as total_events, dc(dest_ip) as unique_destinations by user, date_hour
+| eventstats avg(total_events) as baseline
+| eval anomaly_score = (total_events - baseline) / baseline * 100
+| where anomaly_score > 150
+| table user, date_hour, total_events, unique_destinations, anomaly_score
+
+## 3. Failed + Success Pattern (Brute Force Success)
+index=* sourcetype="/var/log/auth.log"
+| stats count as attempts by src_ip, user
+| search attempts > 50
+| join type=inner src_ip, user [
+    search index=* sourcetype="/var/log/auth.log" "Accepted password"
+    | stats count as successful_login by src_ip, user
+]
+| table src_ip, user, attempts, successful_login
+| eval risk="CRITICAL"
+
+## 4. Command Execution After Failed Logins
+index=* sourcetype="/var/log/auth.log" "Failed password"
+| stats earliest as fail_time by src_ip, user
+| join type=left src_ip [
+    search index=* sourcetype="/var/log/command" 
+    | where _time > fail_time
+    | stats count as commands by src_ip
+]
+| where commands > 0
+| table src_ip, user, fail_time, commands
+
+## 5. Impossible Travel Detection (IP + Country + Time)
+index=* sourcetype="/var/log/auth.log"
+| iplocation src_ip
+| stats earliest(_time) as first_login, latest(_time) as last_login, values(country) as countries by user
+| where dc(countries) > 1
+| eval time_diff = (last_login - first_login) / 3600
+| eval impossible_travel="YES" if time_diff < 2
+| table user, first_login, last_login, time_diff, countries, impossible_travel

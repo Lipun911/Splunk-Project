@@ -1,0 +1,52 @@
+# Basic Splunk Searches (SPL)
+
+## 1. Failed SSH Login Detection
+index=* sourcetype="/var/log/auth.log" "Failed password"
+| stats count as failed_attempts by src_ip, user
+| where failed_attempts > 5
+| table src_ip, user, failed_attempts
+
+## 2. Detect SSH Brute Force Attacks
+index=* sourcetype="/var/log/auth.log" "Invalid user"
+| stats count as invalid_attempts by src_ip
+| where invalid_attempts > 10
+| eval threat_level=case(invalid_attempts > 50, "CRITICAL", invalid_attempts > 20, "HIGH", invalid_attempts > 10, "MEDIUM")
+| table src_ip, invalid_attempts, threat_level
+
+## 3. Geolocation-Based Threat Detection
+index=* sourcetype="/var/log/auth.log" "Failed password"
+| iplocation src_ip
+| where country != "US"
+| stats count by src_ip, country, city
+| sort - count
+
+## 4. Authentication Anomaly Detection
+index=* sourcetype="/var/log/auth.log"
+| stats count as login_attempts by src_ip, user, date_hour
+| eventstats avg(login_attempts) as avg_attempts, stdev(login_attempts) as std_attempts
+| eval z_score = (login_attempts - avg_attempts) / std_attempts
+| where abs(z_score) > 2
+| table src_ip, user, login_attempts, z_score
+
+## 5. Port Scanning Detection
+index=* sourcetype="network" action="blocked"
+| stats count as blocked_connections by src_ip, dest_port
+| where blocked_connections > 20
+| table src_ip, dest_port, blocked_connections
+
+## 6. Failed Sudo Execution Attempts
+index=* sourcetype="/var/log/auth.log" sudo "command not allowed"
+| stats count as sudo_failures by user, host
+| where sudo_failures > 3
+| table user, host, sudo_failures
+
+## 7. Real-Time Failed Login Trend
+index=* sourcetype="/var/log/auth.log" "Failed password"
+| timechart count as failed_logins by user
+| where failed_logins > 1
+
+## 8. Top 10 Attack Sources by Country
+index=* sourcetype="/var/log/auth.log" "Failed password"
+| iplocation src_ip
+| top 10 country by count
+| table country, count
